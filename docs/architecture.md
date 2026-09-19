@@ -1,26 +1,73 @@
 # Architecture
 
-Phase 1 establishes boundaries between the user interface, API, orchestration, specialist agents, code intelligence, retrieval, and model providers. Only the health route is exposed as a working product capability. The remaining components are contracts for later implementation.
+ForgeAI keeps repository analysis request-scoped so the same application can run locally or as a Vercel Python function. The browser supplies a structured snapshot; the backend validates and redacts it before deterministic analysis or LLM retrieval.
+
+## System Architecture
 
 ```mermaid
 flowchart LR
-    Frontend[React + Vite Frontend] --> API[FastAPI API v1]
-    API --> Orchestrator[Agent Orchestrator]
-    Orchestrator --> Agents[Specialized Agents]
-    Agents --> Code[Code Intelligence]
-    Agents --> RAG[RAG Interfaces]
-    Agents --> LLM[LLM Provider]
-    Code --> Scanner[Repository Scanner]
-    RAG --> Indexer[Indexer / Embeddings / Vector Store / Retriever]
-    LLM --> Gemini[Gemini Provider]
+    UI[React + Vite UI] --> API[FastAPI API on Vercel]
+    API --> Ingest[Secure Repository Ingestion]
+    API --> Router[Agent Orchestrator]
+    Ingest --> Analysis[Code and Report Services]
+    Router --> Agents[Specialized Agents]
+    Agents --> RAG[Chunking + Lexical Retrieval]
+    Agents --> Provider[LLMProvider]
+    Provider --> Gemini[Gemini REST API]
 ```
 
-## Boundaries
+## Repository Ingestion
 
-- `frontend/src/api` owns HTTP calls and graceful connection handling.
-- `backend/app/api` owns versioned HTTP routes and response schemas.
-- `backend/app/core` owns configuration, logging, and centralized error behavior.
-- `backend/app/agents` owns agent contracts and future request routing.
-- `backend/app/services` owns provider abstractions such as `LLMProvider`.
-- `backend/app/rag` owns document, embedding, storage, and retrieval contracts.
-- `backend/app/code_intelligence` owns repository scanning and AST analysis contracts.
+```mermaid
+flowchart TD
+    Upload[Folder, files, or ZIP in browser] --> Structured[Structured file content]
+    Structured --> Paths[Normalize relative paths]
+    Paths --> Limits[Apply file and repository limits]
+    Limits --> Filter[Ignore generated directories and binaries]
+    Filter --> Secrets[Reject sensitive files and redact secret patterns]
+    Secrets --> Snapshot[Request-scoped RepositorySnapshot]
+```
+
+The backend never executes uploaded content. The browser supports folders/files and ZIP extraction with `fflate`; the API receives only structured file content. Direct object storage uploads can be added later for larger projects.
+
+## RAG Pipeline
+
+```mermaid
+flowchart LR
+    Snapshot[RepositorySnapshot] --> Chunks[Bounded text chunks]
+    Chunks --> Store[Request-scoped in-memory store]
+    Store --> Retrieve[LexicalRetriever]
+    Retrieve --> Context[Bounded relevant context]
+    Context --> Prompt[Safe provider prompt]
+```
+
+The MVP deliberately does not claim persistent indexing, embeddings, or a vector database. `DocumentChunk`, `RepositoryIndexer`, `EmbeddingProvider`, `VectorStore`, and `Retriever` remain extension boundaries.
+
+## Agent Orchestration
+
+```mermaid
+flowchart TD
+    Task[Structured task_type] --> Orchestrator[AgentOrchestrator]
+    Orchestrator --> Repo[Repository Analyzer]
+    Orchestrator --> Code[Code Analyzer]
+    Orchestrator --> Debug[Debugging]
+    Orchestrator --> Security[Security]
+    Orchestrator --> Tests[Testing]
+    Orchestrator --> Docs[Documentation]
+    Orchestrator --> Architecture[Architecture]
+    Orchestrator --> Copilot[Engineering Copilot]
+    Repo --> Provider[Shared LLMProvider]
+    Code --> Provider
+    Debug --> Provider
+    Security --> Provider
+    Tests --> Provider
+    Docs --> Provider
+    Architecture --> Provider
+    Copilot --> Provider
+```
+
+Deterministic endpoints use local analyzers directly; generative tasks use the same provider abstraction and receive retrieved, redacted context. This avoids eight separate model implementations.
+
+## Deployment Decision
+
+Vercel serves the compiled frontend from `frontend/dist` and routes `/api/*` to `api/index.py`, which imports the existing FastAPI application. The API does not rely on a permanent process or global repository state. `vercel.json` intentionally uses current build/output/rewrites fields rather than the legacy `builds` configuration.

@@ -13,3 +13,5 @@ dist/
 .vite/
 .DS_Store
 *.log
+*.db
+.vercel

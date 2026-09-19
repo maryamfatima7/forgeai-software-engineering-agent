@@ -8,8 +8,6 @@
 
 ## Backend
 
-From the repository root:
-
 ```powershell
 cd backend
 python -m venv .venv
@@ -19,7 +17,7 @@ pytest
 uvicorn app.main:app --reload
 ```
 
-The health endpoint is available at `http://127.0.0.1:8000/api/v1/health`.
+The local health endpoint is `http://127.0.0.1:8000/api/health`.
 
 ## Frontend
 
@@ -31,8 +29,27 @@ npm install
 npm run dev
 ```
 
-Vite prints the local URL. The frontend calls the backend through `VITE_API_BASE_URL`, which defaults to `http://127.0.0.1:8000` when unset.
+Leave `VITE_API_BASE_URL` empty for same-origin deployment. For separate local servers, set it to `http://127.0.0.1:8000`.
 
-## Phase 1 Boundaries
+## Functional Workflow
 
-Do not add provider credentials, pretend that agents have analyzed a repository, or add a vector database as part of the foundation. New capabilities should enter through the existing interfaces and receive focused tests as they become functional.
+1. Open the Repository view.
+2. Choose a project folder, source files, or a ZIP archive.
+3. Confirm the file summary and indexed file list.
+4. Run Code Analysis, Security, Tests, Architecture, or Documentation.
+5. Configure `GEMINI_API_KEY` before using AI Copilot or Implementation Planning.
+
+Uploaded code is never executed. Analysis is request-scoped and disappears when the browser state or serverless request ends.
+
+## Quality Checks
+
+```powershell
+cd backend
+.venv\Scripts\python.exe -m pytest
+cd ..\frontend
+npm run build
+```
+
+## Environment Variables
+
+See the root `.env.example`. The backend reads its values from `.env`; Vite reads variables prefixed with `VITE_` at build time.

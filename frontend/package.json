@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "fflate": "^0.8.2",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",
