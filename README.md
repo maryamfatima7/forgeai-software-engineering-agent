@@ -23,7 +23,7 @@ ForgeAI accepts a project folder, selected files, or a ZIP archive in the browse
 - Gemini-backed copilot and implementation planning behind `LLMProvider`
 - Responsive developer dashboard with loading, error, empty, and result states
 - Database-backed account registration, login, logout, and HTTP-only session protection
-- Vercel-compatible FastAPI Python entrypoint and frontend build
+- Railway-compatible FastAPI production server and Vercel frontend build
 
 ## Architecture
 
@@ -151,15 +151,15 @@ npm run build
 
 ## Deployment
 
-ForgeAI is structured for a root Vercel project. `api/index.py` exposes FastAPI, `vercel.json` builds `frontend` and rewrites `/api/*` to the Python function, and the root `requirements.txt` exposes backend dependencies to Vercel. See [docs/deployment.md](docs/deployment.md).
+ForgeAI deploys its FastAPI backend to Railway and its Vite frontend to Vercel. `railway.toml` starts `app.main:app` from the `backend` application directory, while `vercel.json` builds and serves `frontend`. See [docs/deployment.md](docs/deployment.md).
 
 ## Vercel Setup
 
-1. Push this repository to a Git provider.
-2. Import it into Vercel with the repository root as the project root.
-3. Add `GEMINI_API_KEY`, `GEMINI_MODEL`, `LLM_PROVIDER`, `ALLOWED_ORIGINS`, and ingestion limits in Project Settings when needed.
-4. Leave `VITE_API_BASE_URL` empty for same-origin API routing.
-5. Deploy and verify `/api/health`, then open the deployed frontend.
+1. Deploy the repository to Railway and configure the backend variables in [docs/deployment.md](docs/deployment.md).
+2. Verify the Railway `/health` endpoint.
+3. Import the repository into Vercel with the repository root as the project root.
+4. Set `VITE_API_BASE_URL` to the Railway backend origin before the Vercel build.
+5. Deploy and open the Vercel frontend.
 
 Do not deploy automatically from this workspace.
 

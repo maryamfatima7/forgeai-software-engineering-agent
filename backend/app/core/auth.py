@@ -29,8 +29,8 @@ class User(Base):
 
 
 def _database_url() -> str:
-    if os.getenv("VERCEL") and not os.getenv("AUTH_DATABASE_URL"):
-        raise RuntimeError("AUTH_DATABASE_URL must be configured on Vercel.")
+    if (os.getenv("VERCEL") or os.getenv("RAILWAY_ENVIRONMENT")) and not os.getenv("AUTH_DATABASE_URL"):
+        raise RuntimeError("AUTH_DATABASE_URL must be configured in production.")
     url = settings.auth_database_url or "sqlite:///./.forgeai_auth.db"
     if url.startswith("postgres://"):
         return "postgresql+psycopg://" + url.removeprefix("postgres://")
@@ -103,13 +103,14 @@ def _session_user_id(value: str | None) -> int | None:
 
 
 def set_session_cookie(response: Response, request: Request, user_id: int) -> None:
+    secure = settings.auth_cookie_secure or request.url.scheme == "https"
     response.set_cookie(
         settings.auth_cookie_name,
         _session_value(user_id),
         max_age=settings.auth_session_max_age_seconds,
         httponly=True,
-        secure=settings.auth_cookie_secure or request.url.scheme == "https",
-        samesite="lax",
+        secure=secure,
+        samesite="none" if secure else "lax",
         path="/",
     )
 

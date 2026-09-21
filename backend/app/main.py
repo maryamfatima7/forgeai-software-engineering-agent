@@ -17,6 +17,7 @@ register_exception_handlers(app)
 app.include_router(auth_router, prefix="/api")
 app.include_router(api_router, prefix="/api")
 app.include_router(health_router, prefix="/api")
+app.include_router(health_router)
 app.add_middleware(
 	CORSMiddleware,
 	allow_origins=[origin.strip() for origin in settings.allowed_origins.split(",") if origin.strip()],
