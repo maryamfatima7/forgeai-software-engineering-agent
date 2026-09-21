@@ -30,9 +30,9 @@ The FastAPI application import path is `app.main:app` with `backend` supplied as
 ## Import the Frontend into Vercel
 
 1. In Vercel, choose **Add New Project** and import the repository.
-2. Keep the project root at the ForgeAI repository root.
-3. Do not override the detected framework with a second frontend project.
-4. The checked-in `vercel.json` runs `npm --prefix frontend run build` and publishes `frontend/dist`.
+2. Set the Vercel project **Root Directory** to `frontend`.
+3. Use Vite with build command `npm run build` and output directory `dist`.
+4. The checked-in `vercel.json` is already written for that `frontend` root; do not add `frontend/` to either path.
 5. Set `VITE_API_BASE_URL` to the Railway backend origin. The backend is not duplicated on Vercel.
 6. Deploy only after the local checks pass.
 

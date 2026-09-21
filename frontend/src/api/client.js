@@ -1,6 +1,21 @@
-const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
+function normalizeApiBaseUrl(value) {
+  const configured = value.trim().replace(/\/$/, '')
+  if (!configured) return ''
+  try {
+    const url = new URL(configured, window.location.origin)
+    url.pathname = url.pathname.replace(/\/(?:api|frontend)$/i, '') || '/'
+    url.search = ''
+    url.hash = ''
+    return url.toString().replace(/\/$/, '')
+  } catch {
+    return configured
+  }
+}
+
+const apiBaseUrl = normalizeApiBaseUrl(import.meta.env.VITE_API_BASE_URL || '')
 
 async function request(path, options = {}) {
+  if (import.meta.env.PROD && !apiBaseUrl) throw new Error('The production API URL is not configured.')
   const controller = new AbortController()
   const timeout = window.setTimeout(() => controller.abort(), 30_000)
   try {
