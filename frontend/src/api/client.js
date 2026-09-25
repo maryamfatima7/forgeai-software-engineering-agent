@@ -12,7 +12,7 @@ function normalizeApiBaseUrl(value) {
   }
 }
 
-const apiBaseUrl = normalizeApiBaseUrl(import.meta.env.VITE_API_BASE_URL || '')
+const apiBaseUrl = normalizeApiBaseUrl('https://forgeai-software-engineering-agent-production.up.railway.app')
 
 async function request(path, options = {}) {
   if (import.meta.env.PROD && !apiBaseUrl) throw new Error('The production API URL is not configured.')
@@ -50,3 +50,4 @@ export function registerUser(body) { return request('/api/auth/register', { meth
 export function loginUser(body) { return request('/api/auth/login', { method: 'POST', body: JSON.stringify(body) }) }
 
 export function logoutUser() { return request('/api/auth/logout', { method: 'POST' }) }
+
